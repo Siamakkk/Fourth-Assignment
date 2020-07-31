@@ -15,7 +15,7 @@ promotionRouter.route('/')
         res.json(docs)
     }, (err) => next(err))
     .catch((err) => {
-        res.send(err.message)
+        next(err)
     })
 })
 
@@ -25,7 +25,7 @@ promotionRouter.route('/')
         res.json(result)
     }, (err) => next(err))
     .catch((err) => {
-        res.send(err.message)
+        next(err)
     })
 })
 
@@ -41,7 +41,7 @@ promotionRouter.route('/')
         res.json(result)
     }, (err) => next(err))
     .catch((err) => {
-        res.send(err.message)
+        next(err)
     })
 })
 
@@ -50,9 +50,14 @@ promotionRouter.route('/:promotionId')
 .get((req, res, next) => {
     Promotion.findById(req.params.promotionId)
     .then((promotion) => {
-        res.statusCode = 200
-        res.setHeader('Content-Type', 'application/json')
-        res.json(promotion)
+        if(promotion){
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'application/json')
+            res.json(promotion)
+        }
+        else{
+            return next(new Error(`promotion with Id of ${req.params.promotionId} not found`)) 
+        }
     }, (err) => next(err))
     .catch((err) => next(err))
 })
@@ -66,9 +71,14 @@ promotionRouter.route('/:promotionId')
 .put((req, res, next) => {
     Promotion.findByIdAndUpdate(req.params.promotionId, { $set: req.body } ,{ new: true})
     .then((promotion) => {
-        res.statusCode = 200
-        res.setHeader('Content-Type', 'application/json')
-        res.json(promotion)
+        if(promotion){
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'application/json')
+            res.json(promotion)
+        }
+        else{
+            return next(new Error(`promotion with Id of ${req.params.promotionId} not found`)) 
+        }
     }, (err) => next(err))
     .catch((err) => next(err))
 })
@@ -76,9 +86,13 @@ promotionRouter.route('/:promotionId')
 .delete((req, res, next) => {
     Promotion.findByIdAndDelete(req.params.promotionId)
     .then((result)=> {
-        res.statusCode = 200
+        if(result){
+            res.statusCode = 200
         res.setHeader('Content-Type', 'application/json')
         res.json(result)
+    }else{
+        return next(new Error(`promotion with Id of ${req.params.promotionId} not found`)) 
+    }
     }, (err) => next(err))
  
     .catch((err) => next(err))   

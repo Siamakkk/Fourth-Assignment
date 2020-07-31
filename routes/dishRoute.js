@@ -16,7 +16,7 @@ dishRouter.route('/')
         res.json(docs)
     }, (err) => next(err))
     .catch((err) => {
-        res.send(err.message)
+        next(err)
     })
 })
 .post((req, res, next) =>{
@@ -25,7 +25,7 @@ dishRouter.route('/')
         res.json(result)
     }, (err) => next(err))
     .catch((err) => {
-        res.send(err.message)
+        next(err)
     })
 })
 .put((req, res) => {
@@ -39,20 +39,26 @@ dishRouter.route('/')
         res.json(result)
     }, (err) => next(err))
     .catch((err) => {
-        res.send(err.message)
+        next(err)
     })
 })
 
 dishRouter.route('/:dishId')
 .get((req, res, next) => {
     Dish.findById(req.params.dishId)
-    .then((doc)=> {
-        res.statusCode = 200
-        res.setHeader('Content-Type', 'application/json')
-        res.json(doc)
+    .then((dish)=> {
+        if(dish){
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'application/json')
+            res.json(dish)
+        }
+        else{
+            err = new Error(`dish withe id of ${req.params.dishId} not found`)
+            return next(err)
+        }
     }, (err) => next(err))
     .catch((err) => {
-        res.send(err.message)
+        next(err)
     })
 })
 .post((req, res) => {
@@ -62,20 +68,22 @@ dishRouter.route('/:dishId')
 })
 .put((req, res, next) =>{
     Dish.findByIdAndUpdate(req.params.dishId, { $set: req.body }, { new: true})
-    .then((doc) => {
-        res.json(doc)
+    .then((dish) => {
+        if(dish) res.json(dish)
+        else return next(new Error(`dish withe id of ${req.params.dishId} not found`))
     }, (err) => next(err))
     .catch((err) => {
-        res.send(err.message)
+        next(err)
     })
 })
 .delete((req, res, next) => {
     Dish.findByIdAndDelete(req.params.dishId)
     .then((result) => {
-        res.json(result)
+        if(result) res.json(result)
+        else return next(new Error(`dish withe id of ${req.params.dishId} not found`))
     }, (err) => next(err))
     .catch((err) => {
-        res.send(err.message)
+        next(err)
     })
 })
 
@@ -95,7 +103,7 @@ dishRouter.route('/:dishId/comments')
         }
     }, (err) => next(err))
     .catch((err) => {
-        res.send(err.message)
+        next(err)
     })
 })
 .post((req, res, next) =>{
@@ -117,7 +125,7 @@ dishRouter.route('/:dishId/comments')
         }
     }, (err) => next(err))
     .catch((err) => {
-        res.send(err.message)
+        next(err)
     })
 })
 .put((req, res) => {
@@ -144,7 +152,7 @@ dishRouter.route('/:dishId/comments')
         }
     }, (err) => next(err))
     .catch((err) => {
-        res.send(err.message)
+        next(err)
     })
 })
 
@@ -172,7 +180,7 @@ dishRouter.route('/:dishId/comments/:commentId')
         }
     }, (err) => next(err))
     .catch((err) => {
-        res.send(err.message)
+        next(err)
     })
 })
 .put((req, res, next) => {
@@ -206,7 +214,7 @@ dishRouter.route('/:dishId/comments/:commentId')
         }
     }, (err) => next(err))
     .catch((err) => {
-        res.send(err.message)
+        next(err)
     })
 })
 .post((req, res) => {
@@ -240,7 +248,7 @@ dishRouter.route('/:dishId/comments/:commentId')
         }
     }, (err) => next(err))
     .catch((err) => {
-        res.send(err.message)
+        next(err)
     })
 })
 

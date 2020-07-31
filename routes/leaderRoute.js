@@ -40,10 +40,15 @@ leaderRouter.route('/')
 leaderRouter.route('/:leaderId')
 .get((req, res, next) => {
     leader.findById(req.params.leaderId)
-    .then((docs)=> {
-        res.statusCode = 200
-        res.setHeader('Content-Type', 'application/json')
-        res.json(docs)
+    .then((doc)=> {
+        if(doc){
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'application/json')
+            res.json(doc)
+        }
+        else{
+            return next(new Error(`Error 404 : leader with the Id of ${req.params.leaderId} not found`))
+        }
     }, (err) => next(err))
     .catch((err) => next(err))
 })
@@ -54,19 +59,29 @@ leaderRouter.route('/:leaderId')
 })
 .put((req, res, next) => {
     leader.findByIdAndUpdate(req.params.leaderId, { $set: req.body}, { new: true})
-    .then((docs)=> {
-        res.statusCode = 200
-        res.setHeader('Content-Type', 'application/json')
-        res.json(docs)
+    .then((doc)=> {
+        if(doc){
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'application/json')
+            res.json(doc)
+        }
+        else{
+            return next(new Error(`Error 404 : leader with the Id of ${req.params.leaderId} not found`))
+        }
     }, (err) => next(err))
     .catch((err) => next(err))
 })
 .delete((req, res, next) => {
     leader.findByIdAndDelete(req.params.leaderId)
     .then((result)=> {
-        res.statusCode = 200
-        res.setHeader('Content-Type', 'application/json')
-        res.json(result)
+        if(result){
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'application/json')
+            res.json(result)
+        }
+        else{
+            return next(new Error(`Error 404 : leader with the Id of ${req.params.leaderId} not found`))
+        }
     }, (err) => next(err))
     .catch((err) => next(err))
 })
