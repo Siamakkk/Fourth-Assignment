@@ -17,6 +17,7 @@ const usersRouter = require('./routes/users')
 const dishRouter = require('./routes/dishRoute')
 const leaderRouter = require('./routes/leaderRoute')
 const promotionRouter = require('./routes/promotionRoute')
+const { Buffer } = require('buffer')
 
 const app = express()
 //connecting to mongodb server
@@ -33,6 +34,31 @@ app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
+
+const auth = function(req, res , next) {
+  const authHeader = req.headers.authorization
+
+  if(!authHeader){
+    res.setHeader('WWW-Authenticate', 'Basic')
+    const err = new Error(`you are not authenticated`)
+    err.status = 401
+    return next(err)
+  }
+  const authentication = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(':')
+  const user = authentication[0]
+  const password = authentication[1]
+  if(user === 'admin' && password === 'password'){
+      next()
+  }
+  else{
+      res.setHeader('WWW-Authenticate', 'Basic')
+      const err = new Error(`you are not authenticated`)
+      err.status = 401
+      return next(err)
+  }
+}
+
+app.use(auth)
 app.use(express.static(path.join(__dirname, 'public')))
 
 app.use('/', indexRouter)
