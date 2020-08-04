@@ -1,11 +1,16 @@
 const createError = require('http-errors')
 const express = require('express')
 const path = require('path')
-const cookieParser = require('cookie-parser')
+// const cookieParser = require('cookie-parser')
 const logger = require('morgan')
 const mongoose = require('mongoose')
+const session = require('express-session')
+const FileStore = require('session-file-store')(session)
+const passport = require('passport')
+const authenticate = require('./authenticate')
+const config = require('./config')
 
-const connect = mongoose.connect('mongodb://localhost:27017/conFusion', { 
+const connect = mongoose.connect(config.mongoUrl, { 
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useFindAndModify: false,
@@ -17,7 +22,7 @@ const usersRouter = require('./routes/users')
 const dishRouter = require('./routes/dishRoute')
 const leaderRouter = require('./routes/leaderRoute')
 const promotionRouter = require('./routes/promotionRoute')
-const { Buffer } = require('buffer')
+
 
 const app = express()
 //connecting to mongodb server
@@ -33,36 +38,16 @@ app.set('view engine', 'jade')
 app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
-app.use(cookieParser())
 
-const auth = function(req, res , next) {
-  const authHeader = req.headers.authorization
+//initialize passport
+app.use(passport.initialize())
 
-  if(!authHeader){
-    res.setHeader('WWW-Authenticate', 'Basic')
-    const err = new Error(`you are not authenticated`)
-    err.status = 401
-    return next(err)
-  }
-  const authentication = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(':')
-  const user = authentication[0]
-  const password = authentication[1]
-  if(user === 'admin' && password === 'password'){
-      next()
-  }
-  else{
-      res.setHeader('WWW-Authenticate', 'Basic')
-      const err = new Error(`you are not authenticated`)
-      err.status = 401
-      return next(err)
-  }
-}
-
-app.use(auth)
-app.use(express.static(path.join(__dirname, 'public')))
-
+//completly public Routes
 app.use('/', indexRouter)
 app.use('/users', usersRouter)
+app.use(express.static(path.join(__dirname, 'public')))
+
+//authentication required Routes
 app.use('/dishes', dishRouter)
 app.use('/leaders', leaderRouter)
 app.use('/promotions', promotionRouter)
