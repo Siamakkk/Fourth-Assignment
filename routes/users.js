@@ -2,7 +2,8 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const passport = require('passport')
 const User = require('../models/user')
-// const { authenticate } = require('passport')
+
+const cors = require('./cors')
 const authenticate = require('../authenticate')
 
 const router = express.Router()
@@ -10,7 +11,7 @@ const router = express.Router()
 router.use(bodyParser.json())
 
 //listing all user just for admin
-router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+router.get('/', cors.corsWithOption, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
   User.find({})
   .then((users) => {
     res.statusCode = 200
@@ -20,7 +21,7 @@ router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, (req, res, ne
 })
 
 //SignUp route
-router.post('/signup', (req, res) => {
+router.post('/signup', cors.corsWithOption, (req, res) => {
   User.register(new User({ username : req.body.username }), req.body.password, (err, user) => {
     if(err){
       res.statusCode = 500
@@ -50,7 +51,7 @@ router.post('/signup', (req, res) => {
 })
 
 //login route
-router.post('/login', passport.authenticate('local'), (req, res, next) => {  
+router.post('/login', cors.corsWithOption, passport.authenticate('local'), (req, res, next) => {  
   const token = authenticate.getToken({_id: req.user._id})
   res.statusCode = 200
   res.setHeader('Content-Type', 'text/plain')
@@ -62,7 +63,7 @@ router.post('/login', passport.authenticate('local'), (req, res, next) => {
 })
 
 //logout route
-router.get('/logout', (req, res, next) => {
+router.get('/logout', cors.cors, (req, res, next) => {
   if(req.session){
     req.session.destroy()
     res.clearCookie('session-id')
@@ -73,6 +74,16 @@ router.get('/logout', (req, res, next) => {
     err.status = 403
     next(err)
   }
+})
+
+router.get('/facebook/token', passport.authenticate('facebook-token'), (req, res) => {
+  const token = authenticate.getToken({_id: req.user._id})
+  res.setHeader('Content-Type', 'text/plain')
+  res.json({
+    success: true,
+    token: token,
+    status: 'You are  successfully logged in !'
+  })
 })
 
 module.exports = router

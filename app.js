@@ -22,9 +22,21 @@ const usersRouter = require('./routes/users')
 const dishRouter = require('./routes/dishRoute')
 const leaderRouter = require('./routes/leaderRoute')
 const promotionRouter = require('./routes/promotionRoute')
+const uploadRouter = require('./routes/uploadRoute')
+const faveoriteRouter = require('./routes/favoriteRoute')
 
 
 const app = express()
+ 
+app.all('*', (req, res, next) => {
+  if (req.secure) {
+    return next();
+  }
+  else {
+    res.redirect(307, 'https://' + req.hostname + ':' + app.get('secPort') + req.url);
+  }
+});
+
 //connecting to mongodb server
 connect.then(
   (db) => console.log(`connected successfully to the server`),
@@ -51,6 +63,8 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use('/dishes', dishRouter)
 app.use('/leaders', leaderRouter)
 app.use('/promotions', promotionRouter)
+app.use('/imageUpload', uploadRouter) 
+app.use('/favorites', faveoriteRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
